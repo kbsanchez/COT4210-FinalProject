@@ -111,12 +111,12 @@ void constructNFATable(nfa_t nfa){
     cout << "\nNFA Transition Table:\n";
     cout << "State\t|";
     for(int i = 0; i < nfa.symbols.size(); ++i){
-        cout << "\t" << nfa.symbols[i] << "|";
+        cout << nfa.symbols[i] << "\t|";
     }
 
     for(int i = 0; i < nfa.allStates.size(); ++i){
 
-        cout << endl << nfa.allStates[i] << "\t|\t";
+        cout << endl << nfa.allStates[i] << "\t|";
 
         for(int j = 0; j < nfa.symbols.size(); ++j){
             for(int k = 0; k < nfa.transitions.size(); ++k){
@@ -142,7 +142,7 @@ void constructNFATable(nfa_t nfa){
                     cout << ", ";
                 }
             }
-            cout << "}|\t";
+            cout << "}\t|";
 
             temp.clear();
         }
