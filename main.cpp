@@ -17,11 +17,10 @@ typedef struct nfa_t {
     vector <string> symbols;
     vector <string> allStates;
     vector<transition_t> transitions;
-    vector< vector< vector <string> > > transitionTable;
     unordered_map<string, unordered_map<string, vector<string> > > nfaTable;
 } nfa_t;
 
-void printNFA(nfa_t nfa);
+void constructNFATable(nfa_t nfa);
 
 int main() {
 
@@ -99,7 +98,7 @@ int main() {
         exists = 0, in = 0, in2 = 0;
     }
 
-    printNFA(nfa);
+    constructNFATable(nfa);
 
     return 0;
 }
@@ -109,9 +108,15 @@ void constructNFATable(nfa_t nfa){
     vector<string> temp;
     unordered_map<string, vector<string> > temp2;
 
+    cout << "\nNFA Transition Table:\n";
+    cout << "State\t|";
+    for(int i = 0; i < nfa.symbols.size(); ++i){
+        cout << "\t" << nfa.symbols[i] << "|";
+    }
+
     for(int i = 0; i < nfa.allStates.size(); ++i){
 
-        //cout << endl << nfa.allStates[i];
+        cout << endl << nfa.allStates[i] << "\t|\t";
 
         for(int j = 0; j < nfa.symbols.size(); ++j){
             for(int k = 0; k < nfa.transitions.size(); ++k){
@@ -121,30 +126,33 @@ void constructNFATable(nfa_t nfa){
                         temp.push_back(nfa.transitions[k].nextState);
                     }
                 }
-                if(!found){
-                        temp.push_back(" ");
-                    }
+                
+            }
+            if(!found){
+                temp.push_back(" ");
             }
 
             temp2.insert(make_pair<string, vector<string> >(nfa.symbols[j], temp));
             found = 0;
+
+            cout << "{";
+            for(int r = 0; r < temp.size(); r++){
+                cout << temp[r];
+                if((r+1) != temp.size()){
+                    cout << ", ";
+                }
+            }
+            cout << "}|\t";
+
+            temp.clear();
         }
         
         nfa.nfaTable.insert(make_pair<string, unordered_map<string, vector<string> > >(nfa.allStates[i], temp2));
-    }
-    
-}
-
-void printNFA(nfa_t nfa){
-
-    cout << "\nNFA Transition Table:\n";
-    cout << "State\t|";
-    for(int i = 0; i < nfa.symbols.size(); ++i){
-        cout << "\t" << nfa.symbols[i] << "|";
+        
+        temp2.clear();
+        
     }
 
-    constructNFATable(nfa);
-
-    
+    cout << endl;
     
 }
