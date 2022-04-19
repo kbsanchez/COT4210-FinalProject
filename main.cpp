@@ -18,6 +18,7 @@ typedef struct nfa_t {
     vector <string> allStates;
     vector<transition_t> transitions;
     vector< vector< vector <string> > > transitionTable;
+    unordered_map<string, unordered_map<string, vector<string> > > nfaTable;
 } nfa_t;
 
 void printNFA(nfa_t nfa);
@@ -25,7 +26,7 @@ void printNFA(nfa_t nfa);
 int main() {
 
     int numStates = 0, numTransitions = 0, i = 0;
-    bool Final = 0, exists = 0, in = 0, in2 = 0;
+    bool Final = 1, exists = 0, in = 0, in2 = 0;
     nfa_t nfa;
     transition_t trans;
     string temp;
@@ -38,18 +39,25 @@ int main() {
 
     nfa.allStates.push_back(nfa.initialState);
 
-    while (Final == 0 && i < numStates){
+    while (Final == 1 && i < numStates){
         cout << "Final state: ";
         cin >> temp;
         
         nfa.finalStates.push_back(temp);
-        nfa.allStates.push_back(nfa.finalStates[i]);
+        for(int r = 0; r < nfa.allStates.size(); ++r){
+            if(temp == nfa.allStates[r]){
+                in = 1;
+            }
+        }
+        if(in == 0)
+            nfa.allStates.push_back(nfa.finalStates[i]);
 
         ++i;
         if(i < numStates){
-            cout << "Add another final state?\nEnter 0 for yes, 1 for no: ";
+            cout << "Add another final state?\nEnter 1 for yes, 0 for no: ";
             cin >> Final;
         }
+        in = 0;
     }
 
     cout << "Number of transitions: ";
@@ -65,21 +73,23 @@ int main() {
                 exists = 1;
             }
         }
+        if(exists == 0){
+            nfa.symbols.push_back(trans.symbol);
+        }
+
         for(int i = 0; i < nfa.allStates.size(); ++i){
             if (trans.presentState == nfa.allStates[i]){
                 in = 1;
             }
         }
+        if(in == 0){
+            nfa.allStates.push_back(trans.presentState);
+        }
+
         for(int i = 0; i < nfa.allStates.size(); ++i){
             if (trans.nextState == nfa.allStates[i]){
                 in2 = 1;
             }
-        }
-        if(exists == 0){
-            nfa.symbols.push_back(trans.symbol);
-        }
-        if(in == 0){
-            nfa.allStates.push_back(trans.presentState);
         }
         if(in2 == 0){
             nfa.allStates.push_back(trans.nextState);
@@ -94,10 +104,38 @@ int main() {
     return 0;
 }
 
+void constructNFATable(nfa_t nfa){
+    bool found = 0;
+    vector<string> temp;
+    unordered_map<string, vector<string> > temp2;
+
+    for(int i = 0; i < nfa.allStates.size(); ++i){
+
+        //cout << endl << nfa.allStates[i];
+
+        for(int j = 0; j < nfa.symbols.size(); ++j){
+            for(int k = 0; k < nfa.transitions.size(); ++k){
+                if(nfa.transitions[k].symbol == nfa.symbols[j]){
+                    if(nfa.transitions[k].presentState == nfa.allStates[i]){
+                        found = 1;
+                        temp.push_back(nfa.transitions[k].nextState);
+                    }
+                }
+                if(!found){
+                        temp.push_back(" ");
+                    }
+            }
+
+            temp2.insert(make_pair<string, vector<string> >(nfa.symbols[j], temp));
+            found = 0;
+        }
+        
+        nfa.nfaTable.insert(make_pair<string, unordered_map<string, vector<string> > >(nfa.allStates[i], temp2));
+    }
+    
+}
+
 void printNFA(nfa_t nfa){
-    int captureIndex = -1, captureIndex2 = -1;
-    vector< vector<string> > temp;
-    int count = 0, count2 = 0;
 
     cout << "\nNFA Transition Table:\n";
     cout << "State\t|";
@@ -105,34 +143,8 @@ void printNFA(nfa_t nfa){
         cout << "\t" << nfa.symbols[i] << "|";
     }
 
-    for(int i = 0; i < nfa.allStates.size(); ++i){
-        cout << "\n" << nfa.allStates[i] << "\t|";
-        for(int j = 0; i < nfa.symbols.size(); ++j){
-            for(int k = 0; k < nfa.transitions.size(); ++k){
-                if(nfa.transitions[k].presentState == nfa.allStates[i] && nfa.transitions[k].symbol == nfa.symbols[j]){
-                    captureIndex = k;
-                    temp[j].push_back(nfa.transitions[k].nextState);
-                    
-                }
-            }
-            if(captureIndex >= 0){
-                captureIndex2 = j;
-                nfa.transitionTable[i][j].push_back(temp[j][count]);
-                captureIndex = -1;
-                count++;
-            }
-            else if(captureIndex < 0 && captureIndex2 < 0){
-                temp[j].push_back(" ");
-                nfa.transitionTable[i][j].push_back(temp[j][count]);
-                count++;
-            }
-            
-        }
-        
-        for(int j = 0; i < nfa.symbols.size(); ++j){
-            cout << nfa.transitionTable[i][j][count-1] << "\t|";
-        }
-        captureIndex2 = -1;
-    }
+    constructNFATable(nfa);
+
+    
     
 }
