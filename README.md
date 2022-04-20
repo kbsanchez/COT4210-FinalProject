@@ -6,8 +6,27 @@
 - Moinul Islam Munna
 ##### Project description here.
 ## How to compile
-#### Description here.
+     make {your target name}
 ## How to run
-#### Description here.
+    ./{your target name}
 ## Running examples
-#### Placeholder.
+    % make NFAtoDFA
+    % ./NFAtoDFA
+    Number of states: 
+    Initial state: 
+    Final state: 
+    Add another final state?
+    Enter 1 for yes, 0 for no: 0
+    Number of transitions: 
+
+    Enter each transition in the form of {present state} {symbol} {next state}
+    (Epsilon transitions can be denoted by using the symbol E)
+
+    Transition 1: 
+
+    **********************************************************
+          NFA table construction complete! Results below      
+    **********************************************************
+
+    NFA Transition Table:
+    
