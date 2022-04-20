@@ -7,7 +7,7 @@ TARGET = main
 all: $(TARGET)
 
 $(TARGET): $(TARGET).cpp
-	$(CC) $(CFLAGS) -o $(TARGET) main.cpp
+	$(CC) $(CFLAGS) -o $(TARGET).cpp
 
 clean:
 	$(RM) $(TARGET)
