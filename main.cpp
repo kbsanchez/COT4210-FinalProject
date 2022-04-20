@@ -34,11 +34,11 @@ typedef struct dfaState_t {
 void constructNFATable(nfa_t nfa);
 void convertNFAtoDFA(nfa_t nfa);
 void printDFA(nfa_t nfa);
-vector<string> finalDFAStates(unordered_map<string, dfaState_t> dfaTable, nfa_t nfa);
-dfaState_t newDFAState(bool mark, std::vector<string> s);
+vector<string> finalDFAStates(unordered_map<vector<string>, dfaState_t> dfaTable, nfa_t nfa);
+dfaState_t newDFAState(bool mark, vector<string> s);
 vector<string> moves(vector<string> state, string symbol, nfa_t nfa);
 vector<string> Eclosure(vector<string> state, nfa_t nfa);
-string checkUnmarked(unordered_map<string, dfaState_t> dfaTable);
+vector<string> checkUnmarked(unordered_map<vector<string>, dfaState_t> dfaTable);
 
 /*
     Main Function:
@@ -196,7 +196,7 @@ void constructNFATable(nfa_t nfa){
 void convertNFAtoDFA(nfa_t nfa){
     bool in = 0;
 
-    unordered_map<string, dfaState_t> dfaTable;
+    unordered_map<vector<string>, dfaState_t> dfaTable;
     vector<string> initialState;
     initialState.push_back(nfa.initialState);
 
@@ -204,20 +204,22 @@ void convertNFAtoDFA(nfa_t nfa){
 
     dfaState_t initState = newDFAState(false, eclosureVector);
 
-    for(int i = 0; i < initState.states.size(); i++){
-        dfaTable[initState.states[i]] = initState;
-    }
-    
+    //for(int i = 0; i < initState.states.size(); i++){
+        //dfaTable[initState.states[i]] = initState;
+        dfaTable.insert(make_pair<vector<string>, dfaState_t>(initState.states, initState));
+    //}
+    vector<string> done;
+    done.push_back("all marked");
 
-    while(checkUnmarked(dfaTable) != "no"){
-        string temp = checkUnmarked(dfaTable);
+    for(int z = 0; checkUnmarked(dfaTable) != done; z++){
+        vector<string> temp = checkUnmarked(dfaTable);
         dfaTable[temp].marked = true;
 
         for(int j = 0; j < nfa.symbols.size()-1; j++){
             vector<string> theMoveVector = moves(dfaTable[temp].states, nfa.symbols[j], nfa);
             vector<string> alphaMove = Eclosure(theMoveVector, nfa);
             
-            for(unordered_map<string, dfaState_t>::iterator ptr; ptr != dfaTable.end(); ptr++){
+            for(unordered_map<vector<string>, dfaState_t>::iterator ptr; ptr != dfaTable.end(); ptr++){
                 dfaState_t cur = dfaTable[ptr->first];
                 if(cur.states == alphaMove){
                     in = 1;
@@ -231,10 +233,8 @@ void convertNFAtoDFA(nfa_t nfa){
             else{
                 if(!alphaMove.empty()){
                     dfaState_t newState = newDFAState(false, alphaMove);
-
-                    for(unordered_map<string, dfaState_t>::iterator ptr; ptr != dfaTable.end(); ptr++){
-                        dfaTable[ptr->first] = newState;
-                    }
+                    
+                    dfaTable.insert(make_pair<vector<string>, dfaState_t>(temp, newState));
 
                     for(int k = 0; k < alphaMove.size(); k++){
                         dfaTable[temp].moves[nfa.symbols[j]] = alphaMove[k];
@@ -269,18 +269,26 @@ void convertNFAtoDFA(nfa_t nfa){
         cout << nfa.symbols[i] << "\t|";
     }
 
-    for(unordered_map<string, dfaState_t>::iterator ptr; ptr != dfaTable.end(); ptr++){
-        cout << endl << ptr->first << "\t|";
+    for(unordered_map<vector<string>, dfaState_t>::iterator ptr = dfaTable.begin(); ptr != dfaTable.end(); ptr++){
+        cout << endl << "{";
+        for(int i = 0; i < ptr->first.size(); i++){
+            cout << ptr->first[i];
+            if(i != ptr->first.size()-1)
+                cout << ", ";
+        }
+        cout << "}\t|";
         for(int i = 0; i < nfa.symbols.size()-1; ++i){
             cout << "{";
             if(dfaTable[ptr->first].moves[nfa.symbols[i]] != " "){
-                cout << dfaTable[ptr->first].moves[nfa.symbols[i]];
+                for(int j = 0; j < dfaTable[ptr->first].moves[nfa.symbols[i]].size(); j++){
+                    cout << dfaTable[ptr->first].moves[nfa.symbols[i]][j];
+                    if(j != dfaTable[ptr->first].moves[nfa.symbols[i]].size()-1)
+                        cout << ", ";
+                }
             }
             cout << "}\t|";
 
-            // if(i != nfa.symbols.size()-1){
-            //     cout << 
-            // }
+            
         }
     }
 
@@ -288,22 +296,28 @@ void convertNFAtoDFA(nfa_t nfa){
 
 }
 
-string checkUnmarked(unordered_map<string, dfaState_t> dfaTable){
-    for(unordered_map<string, dfaState_t>::iterator itr; itr != dfaTable.end(); itr++){
+vector<string> checkUnmarked(unordered_map<vector<string>, dfaState_t> dfaTable){
+    for(unordered_map<vector<string>, dfaState_t>::iterator itr; itr != dfaTable.end(); itr++){
         dfaState_t cur = dfaTable[itr->first];
         if(!cur.marked){
             return itr->first;
         }
     }
 
-    return "no";
+    vector<string> temp;
+    temp.push_back("all marked");
+    return temp;
 }
 
-vector<string> finalDFAStates(unordered_map<string, dfaState_t> dfaTable, nfa_t nfa){
+/*
+    Final DFA States Function:
+
+*/
+vector<string> finalDFAStates(unordered_map<vector<string>, dfaState_t> dfaTable, nfa_t nfa){
     vector<string> finalStatesDFA;
     string temp;
     bool in = 0;
-    for(unordered_map<string, dfaState_t>::iterator itr = dfaTable.begin(); itr != dfaTable.end(); itr++){
+    for(unordered_map<vector<string>, dfaState_t>::iterator itr = dfaTable.begin(); itr != dfaTable.end(); itr++){
         for(int j = 0; j < nfa.finalStates.size(); j++){
             for(int k = 0; k < dfaTable[itr->first].states.size(); k++){
                 if(dfaTable[itr->first].states[k] == nfa.finalStates[j]){
@@ -323,7 +337,7 @@ vector<string> finalDFAStates(unordered_map<string, dfaState_t> dfaTable, nfa_t 
     return finalStatesDFA;
 }
 
-dfaState_t newDFAState(bool mark, std::vector<string> s){
+dfaState_t newDFAState(bool mark, vector<string> s){
   dfaState_t newState;
   unordered_map<string, string> init;
   newState.marked = mark;
@@ -383,26 +397,4 @@ vector<string> Eclosure(vector<string> state, nfa_t nfa){
         }
     }
     return eClosure;
-}
-
-/*
-    Print DFA Function:
-    Prints DFA transition table
-*/
-void printDFA(nfa_t nfa){
-
-    cout << endl << "*********************************************************" << endl
-    << "    NFA - to - DFA conversion complete! Results below    " << endl
-    << "*********************************************************" << endl << endl;
-    
-    cout << "Initial state: " << endl;
-    cout << "Final State(s): " << endl;
-
-    cout << "\nDFA Transition Table:\n";
-    cout << "State\t|";
-    for(int i = 0; i < nfa.symbols.size()-1; ++i){
-        cout << nfa.symbols[i] << "\t|";
-    }
-
-    cout << endl;
 }
