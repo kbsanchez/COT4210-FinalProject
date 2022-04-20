@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cstdio>
 #include <string>
 #include <vector>
 #include <unordered_map>
@@ -13,14 +14,22 @@ typedef struct transition_t {
 
 typedef struct nfa_t {
     string initialState;
-    vector <string> finalStates;
-    vector <string> symbols;
-    vector <string> allStates;
+    vector<string> finalStates;
+    vector<string> symbols;
+    vector<string> allStates;
     vector<transition_t> transitions;
     unordered_map<string, unordered_map<string, vector<string> > > nfaTable;
 } nfa_t;
 
+typedef struct dfaState_t {
+    bool marked;
+    vector<string> states;
+    unordered_map<string, string> moves;
+} dfaState_t;
+
 void constructNFATable(nfa_t nfa);
+void convertNFAtoDFA(nfa_t nfa);
+void printDFA(nfa_t nfa);
 
 int main() {
 
@@ -48,8 +57,8 @@ int main() {
                 in = 1;
             }
         }
-        if(in == 0)
-            nfa.allStates.push_back(nfa.finalStates[i]);
+        // if(in == 0)
+        //     nfa.allStates.push_back(nfa.finalStates[i]);
 
         ++i;
         if(i < numStates){
@@ -62,7 +71,8 @@ int main() {
     cout << "Number of transitions: ";
     cin >> numTransitions;
 
-    cout << "\nEnter each transition in the form of {present state} {symbol} {next state}\n\n";
+    cout << "\nEnter each transition in the form of {present state} {symbol} {next state}\n"
+    << "(Epsilon transitions can be denoted by using the symbol E)\n\n";
 
     for (int j = 0; j < numTransitions; ++j){
         cout << "Transition " << j+1 << ": ";
@@ -72,7 +82,7 @@ int main() {
                 exists = 1;
             }
         }
-        if(exists == 0){
+        if(!exists && trans.symbol != "E"){
             nfa.symbols.push_back(trans.symbol);
         }
 
@@ -81,7 +91,7 @@ int main() {
                 in = 1;
             }
         }
-        if(in == 0){
+        if(!in){
             nfa.allStates.push_back(trans.presentState);
         }
 
@@ -90,15 +100,18 @@ int main() {
                 in2 = 1;
             }
         }
-        if(in2 == 0){
+        if(!in2){
             nfa.allStates.push_back(trans.nextState);
         }
 
         nfa.transitions.push_back(trans);
         exists = 0, in = 0, in2 = 0;
     }
+        
+    nfa.symbols.push_back("E");
 
     constructNFATable(nfa);
+    convertNFAtoDFA(nfa);
 
     return 0;
 }
@@ -107,6 +120,10 @@ void constructNFATable(nfa_t nfa){
     bool found = 0;
     vector<string> temp;
     unordered_map<string, vector<string> > temp2;
+
+    cout << endl << "**********************************************************" << endl
+    << "      NFA table construction complete! Results below      " << endl
+    << "**********************************************************" << endl << endl;
 
     cout << "\nNFA Transition Table:\n";
     cout << "State\t|";
@@ -155,4 +172,26 @@ void constructNFATable(nfa_t nfa){
 
     cout << endl;
     
+}
+
+void convertNFAtoDFA(nfa_t nfa){
+    printDFA(nfa);
+
+}
+
+void printDFA(nfa_t nfa){
+    cout << endl << "*********************************************************" << endl
+    << "    NFA - to - DFA conversion complete! Results below    " << endl
+    << "*********************************************************" << endl << endl;
+    
+    cout << "Initial state: " << endl;
+    cout << "Final State(s): " << endl;
+
+    cout << "\nDFA Transition Table:\n";
+    cout << "State\t|";
+    for(int i = 0; i < nfa.symbols.size()-1; ++i){
+        cout << nfa.symbols[i] << "\t|";
+    }
+
+    cout << endl;
 }
