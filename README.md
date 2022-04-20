@@ -6,12 +6,12 @@
 - Moinul Islam Munna
 ##### Project description here.
 ## How to compile
-     make {your target name}
+     make main
 ## How to run
-    ./{your target name}
+    ./main
 ## Running examples
-    % make NFAtoDFA
-    % ./NFAtoDFA
+    % make main
+    % ./main
     Number of states: 
     Initial state: 
     Final state: 
