@@ -33,7 +33,6 @@ typedef struct dfaState_t {
 
 void constructNFATable(nfa_t nfa);
 void convertNFAtoDFA(nfa_t nfa);
-void printDFA(nfa_t nfa);
 vector<string> finalDFAStates(unordered_map<string, dfaState_t> dfaTable, nfa_t nfa);
 dfaState_t newDFAState(bool mark, vector<string> s);
 vector<string> moves(vector<string> state, string symbol, nfa_t nfa);
@@ -206,24 +205,41 @@ void convertNFAtoDFA(nfa_t nfa){
 
     for(int i = 0; i < initState.states.size(); i++){
         dfaTable[initState.states[i]] = initState;
-        //dfaTable.insert(make_pair<vector<string>, dfaState_t>(initState.states, initState));
+        unordered_map<string, dfaState_t>::iterator ptr = dfaTable.begin();
+        // cout << endl << dfaTable[ptr->first].states[i];
+        ptr++;
     }
     string done = "all marked";
 
-    for(int z = 0; checkUnmarked(dfaTable) != done; z++){
+    // problem: not entering the for loop
+    while(checkUnmarked(dfaTable) != done){
         string temp = checkUnmarked(dfaTable);
+        cout << endl << temp;
         dfaTable[temp].marked = true;
 
         for(int j = 0; j < nfa.symbols.size()-1; j++){
             vector<string> theMoveVector = moves(dfaTable[temp].states, nfa.symbols[j], nfa);
-            vector<string> alphaMove = Eclosure(theMoveVector, nfa);
+            vector<string> alphaMove = Eclosure(theMoveVector, nfa); // Potential problem
             
             for(unordered_map<string, dfaState_t>::iterator ptr = dfaTable.begin(); ptr != dfaTable.end(); ptr++){
                 dfaState_t cur = dfaTable[ptr->first];
-                if(cur.states == alphaMove){
-                    in = 1;
+                for(int i = 0; i < cur.states.size(); i++){
+                    if(cur.states.size() == alphaMove.size()){
+                        if(cur.states[i] == alphaMove[i]){
+                            cout << endl << cur.states[i];
+                            in = 1;
+                        }
+                        else{
+                            break;
+                        }
+                    }
+                    else{
+                       break;
+                    }
                 }
             }
+            cout << endl << in;
+
             if(in){
                 for(int k = 0; k < alphaMove.size(); k++){
                     dfaTable[temp].moves[nfa.symbols[j]] = alphaMove[k];
@@ -233,7 +249,9 @@ void convertNFAtoDFA(nfa_t nfa){
                 if(!alphaMove.empty()){
                     dfaState_t newState = newDFAState(false, alphaMove);
                     
-                    dfaTable.insert(make_pair<string, dfaState_t>(temp, newState));
+                    for(int q = 0; q < newState.states.size(); q++){
+                        dfaTable[newState.states[q]] = newState;
+                    }
 
                     for(int k = 0; k < alphaMove.size(); k++){
                         dfaTable[temp].moves[nfa.symbols[j]] = alphaMove[k];
@@ -244,6 +262,8 @@ void convertNFAtoDFA(nfa_t nfa){
                 }
             }
             in = 0;
+            alphaMove.clear();
+            theMoveVector.clear();
         }
     }
 
@@ -284,6 +304,8 @@ void convertNFAtoDFA(nfa_t nfa){
                     if(j != dfaTable[ptr->first].moves[nfa.symbols[i]].size()-1)
                         cout << ", ";
                 }
+            }else{
+                cout << " ";
             }
             cout << "}\t|";
 
@@ -295,11 +317,15 @@ void convertNFAtoDFA(nfa_t nfa){
 
 }
 
+/*
+
+*/
 string checkUnmarked(unordered_map<string, dfaState_t> dfaTable){
-    for(unordered_map<string, dfaState_t>::iterator itr; itr != dfaTable.end(); itr++){
+    for(unordered_map<string, dfaState_t>::iterator itr = dfaTable.begin(); itr != dfaTable.end(); itr++){
         dfaState_t cur = dfaTable[itr->first];
         if(!cur.marked){
             return itr->first;
+            cout << endl << itr->first;
         }
     }
 
