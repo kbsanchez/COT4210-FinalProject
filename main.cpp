@@ -33,7 +33,7 @@ typedef struct dfaState_t {
 
 void constructNFATable(nfa_t nfa);
 void convertNFAtoDFA(nfa_t nfa);
-vector<string> finalDFAStates(unordered_map<string, dfaState_t> dfaTable, nfa_t nfa);
+vector<vector<string> > finalDFAStates(unordered_map<string, dfaState_t> dfaTable, nfa_t nfa);
 dfaState_t newDFAState(bool mark, vector<string> s);
 vector<string> moves(vector<string> state, string symbol, nfa_t nfa);
 vector<string> Eclosure(vector<string> state, nfa_t nfa);
@@ -146,8 +146,13 @@ void constructNFATable(nfa_t nfa){
     }
 
     for(int i = 0; i < nfa.allStates.size(); ++i){
-
-        cout << endl << nfa.allStates[i] << "\t|";
+        cout << endl;
+        for(int m = 0; m < nfa.finalStates.size(); m++){
+            if(nfa.allStates[i] == nfa.finalStates[m]){
+                cout << "*";
+            }
+        }
+        cout << nfa.allStates[i] << "\t|";
 
         for(int j = 0; j < nfa.symbols.size(); ++j){
             for(int k = 0; k < nfa.transitions.size(); ++k){
@@ -190,7 +195,7 @@ void constructNFATable(nfa_t nfa){
 
 /*
     Convert NFA to DFA Function:
-    Creates a DFA transition table
+    Creates a DFA transition table and prints the results
 */
 void convertNFAtoDFA(nfa_t nfa){
     bool in = 0;
@@ -211,10 +216,9 @@ void convertNFAtoDFA(nfa_t nfa){
     }
     string done = "all marked";
 
-    // problem: not entering the for loop
     while(checkUnmarked(dfaTable) != done){
         string temp = checkUnmarked(dfaTable);
-        cout << endl << temp;
+        //cout << endl << temp;
         dfaTable[temp].marked = true;
 
         for(int j = 0; j < nfa.symbols.size()-1; j++){
@@ -226,7 +230,7 @@ void convertNFAtoDFA(nfa_t nfa){
                 for(int i = 0; i < cur.states.size(); i++){
                     if(cur.states.size() == alphaMove.size()){
                         if(cur.states[i] == alphaMove[i]){
-                            cout << endl << cur.states[i];
+                            //cout << endl << cur.states[i];
                             in = 1;
                         }
                         else{
@@ -238,7 +242,7 @@ void convertNFAtoDFA(nfa_t nfa){
                     }
                 }
             }
-            cout << endl << in;
+            //cout << endl << in;
 
             if(in){
                 for(int k = 0; k < alphaMove.size(); k++){
@@ -273,9 +277,17 @@ void convertNFAtoDFA(nfa_t nfa){
     
     cout << "Initial state: {q0}" << endl;
     cout << "Final State(s): {";
-    vector<string> finalS = finalDFAStates(dfaTable, nfa);
+    vector<vector<string> > finalS = finalDFAStates(dfaTable, nfa);
     for(int i = 0; i < finalS.size(); i++){
-        cout << finalS[i];
+        cout << "{";
+        for(int j = 0; j < finalS[i].size(); j++){
+            cout << finalS[i][j];
+
+            if(j != finalS[i].size()-1){
+                cout << ", ";
+            }
+        }
+        cout << "}";
         if(i != finalS.size()-1){
             cout << ", ";
         }
@@ -318,29 +330,28 @@ void convertNFAtoDFA(nfa_t nfa){
 }
 
 /*
-
+    check unmarked function
+    looks for unmarked states in the dfa transition table. returns the state name if unmarked. returns a sentinel value once all states have been marked
 */
 string checkUnmarked(unordered_map<string, dfaState_t> dfaTable){
     for(unordered_map<string, dfaState_t>::iterator itr = dfaTable.begin(); itr != dfaTable.end(); itr++){
         dfaState_t cur = dfaTable[itr->first];
         if(!cur.marked){
             return itr->first;
-            cout << endl << itr->first;
+            //cout << endl << itr->first;
         }
     }
 
-    //vector<string> temp;
-    //temp.push_back("all marked");
     return "all marked";
 }
 
 /*
     Final DFA States Function:
-
+    returns a vector containing the final states for the DFA when given a DFA table and an NFA.
 */
-vector<string> finalDFAStates(unordered_map<string, dfaState_t> dfaTable, nfa_t nfa){
-    vector<string> finalStatesDFA;
-    string temp;
+vector<vector<string> > finalDFAStates(unordered_map<string, dfaState_t> dfaTable, nfa_t nfa){
+    vector<vector<string> > finalStatesDFA;
+    vector<string> temp;
     bool in = 0;
     for(unordered_map<string, dfaState_t>::iterator itr = dfaTable.begin(); itr != dfaTable.end(); itr++){
         for(int j = 0; j < nfa.finalStates.size(); j++){
@@ -349,7 +360,7 @@ vector<string> finalDFAStates(unordered_map<string, dfaState_t> dfaTable, nfa_t 
                     in = 1;
                 }
             }
-            temp = nfa.finalStates[j];
+            temp.push_back(nfa.finalStates[j]);
         }
 
         if(!in){
@@ -363,7 +374,8 @@ vector<string> finalDFAStates(unordered_map<string, dfaState_t> dfaTable, nfa_t 
 }
 
 /*
-
+    newDFAState function
+    Helper function that returns a new dfaState.
 */
 dfaState_t newDFAState(bool mark, vector<string> s){
   dfaState_t newState;
@@ -375,7 +387,8 @@ dfaState_t newDFAState(bool mark, vector<string> s){
 }
 
 /*
-
+    moves function
+    Returns a vector containing all reachable states when given a state, a move, and an NFA.
 */
 vector<string> moves(vector<string> state, string symbol, nfa_t nfa){
     vector<string> result;
@@ -398,7 +411,8 @@ vector<string> moves(vector<string> state, string symbol, nfa_t nfa){
 }
 
 /*
-
+    Eclosure function
+    Returns a vector containing the E-closure when given a state T and an NFA.
 */
 vector<string> Eclosure(vector<string> state, nfa_t nfa){
     vector<string> eClosure;
