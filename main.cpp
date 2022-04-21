@@ -1,3 +1,17 @@
+/**************************************************************
+ *             DFA TO NFA CONVERSION PROGRAM                  *
+ *                                                            *
+ *                COT 4210 FINAL PROJECT                      *
+ *                                                            *
+ *                      SPRING 2022                           *
+ *                                                            *
+ *                     Keylin Sanchez                         *
+ *                       Chuong Le                            *
+ *                      Glenn Bravo                           *
+ *                   Moinul Islam Munna                       *
+ *                                                            *
+ **************************************************************/
+
 #include <iostream>
 #include <cstdio>
 #include <string>
